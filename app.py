@@ -1,17 +1,17 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Meo Den Mat Vang 2D Deluxe", layout="centered")
+st.set_page_config(page_title="Meo Den Mat Vang Chimi Changa", layout="centered")
 
 st.title("Game Meo Den Mat Vang 2D")
-st.write("Song: Sophia is my kitty | Co nui phia sau, den duong, tieng Meow va nhay 1 cham!")
+st.write("Song: Chimi Chimi Changa (TikTok Trend) | Co nui phia sau, den duong va meo nhay 1 cham!")
 
 game_html = """
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Black Cat Rooftop Run Deluxe</title>
+    <title>Black Cat Chimi Changa Run</title>
     <style>
         body {
             background-color: #0b0f19;
@@ -92,7 +92,7 @@ game_html = """
     </div>
 
     <div id="control-panel">
-        <button class="btn sound-btn" id="audio-toggle" onclick="toggleAudio()">NHAC (SOPHIA KITTY): OFF</button>
+        <button class="btn sound-btn" id="audio-toggle" onclick="toggleAudio()">NHAC (CHIMI CHANGA): OFF</button>
         <button class="btn jump-btn" id="jump-trigger">NHẢY (1 CHAM)</button>
     </div>
 
@@ -106,15 +106,17 @@ game_html = """
         let speed = 4.2;
         let audioEnabled = false;
 
+        // Web Audio API - Melody Chimi Chimi Changa (TikTok)
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
         let bgInterval = null;
 
-        const melodyNotes = [
-            523.25, 587.33, 659.25, 523.25,
-            659.25, 659.25, 587.33, 523.25,
-            659.25, 698.46, 783.99, 659.25,
-            783.99, 783.99, 698.46, 659.25
+        // Giai điệu Chimi Chimi Changa TikTok
+        const chimiNotes = [
+            587.33, 659.25, 659.25, 587.33, 659.25, 659.25, // Chi-mi chi-mi chan-ga
+            783.99, 783.99, 659.25, 587.33,               // Chi-mi chi-mi
+            587.33, 659.25, 659.25, 587.33, 659.25, 659.25, // Chi-mi chi-mi chan-ga
+            880.00, 783.99, 659.25, 523.25                // Changa lalala
         ];
         let noteIdx = 0;
 
@@ -132,16 +134,17 @@ game_html = """
             audioEnabled = !audioEnabled;
             const btn = document.getElementById('audio-toggle');
             if (audioEnabled) {
-                btn.innerText = "NHAC (SOPHIA KITTY): ON";
+                btn.innerText = "NHAC (CHIMI CHANGA): ON";
                 btn.style.backgroundColor = "#22c55e";
                 startBgMusic();
             } else {
-                btn.innerText = "NHAC (SOPHIA KITTY): OFF";
+                btn.innerText = "NHAC (CHIMI CHANGA): OFF";
                 btn.style.backgroundColor = "#38bdf8";
                 stopBgMusic();
             }
         }
 
+        // Tieng Meow ngot ngat khi nhay
         function playMeowSound() {
             if (!audioEnabled || !audioCtx) return;
             const osc = audioCtx.createOscillator();
@@ -149,8 +152,8 @@ game_html = """
             osc.type = 'triangle';
             
             osc.frequency.setValueAtTime(450, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(750, audioCtx.currentTime + 0.12);
-            osc.frequency.linearRampToValueAtTime(350, audioCtx.currentTime + 0.28);
+            osc.frequency.linearRampToValueAtTime(780, audioCtx.currentTime + 0.12);
+            osc.frequency.linearRampToValueAtTime(360, audioCtx.currentTime + 0.28);
 
             gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.28);
@@ -169,18 +172,18 @@ game_html = """
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'square';
-                osc.frequency.setValueAtTime(melodyNotes[noteIdx], audioCtx.currentTime);
+                osc.frequency.setValueAtTime(chimiNotes[noteIdx], audioCtx.currentTime);
                 
-                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.22);
+                gain.gain.setValueAtTime(0.09, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.18);
 
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.22);
+                osc.stop(audioCtx.currentTime + 0.18);
 
-                noteIdx = (noteIdx + 1) % melodyNotes.length;
-            }, 250);
+                noteIdx = (noteIdx + 1) % chimiNotes.length;
+            }, 200);
         }
 
         function stopBgMusic() {
@@ -190,6 +193,7 @@ game_html = """
             }
         }
 
+        // Meo Den Mat Vang
         const cat = {
             x: 90,
             y: 140,
@@ -201,16 +205,20 @@ game_html = """
             isGrounded: false,
 
             draw() {
+                // Bong meo
                 ctx.fillStyle = 'rgba(0,0,0,0.4)';
                 ctx.beginPath();
                 ctx.ellipse(this.x + 16, this.y + this.h + 2, 14, 4, 0, 0, Math.PI * 2);
                 ctx.fill();
 
+                // Than meo den
                 ctx.fillStyle = '#020617';
                 ctx.fillRect(this.x, this.y, this.w, this.h);
 
+                // Dau meo den
                 ctx.fillRect(this.x + 18, this.y - 12, 16, 16);
 
+                // Tai meo sac nhon
                 ctx.fillStyle = '#020617';
                 ctx.beginPath();
                 ctx.moveTo(this.x + 18, this.y - 12);
@@ -224,16 +232,20 @@ game_html = """
                 ctx.lineTo(this.x + 34, this.y - 12);
                 ctx.fill();
 
+                // Vien hong trong tai
                 ctx.fillStyle = '#f43f5e';
                 ctx.fillRect(this.x + 21, this.y - 16, 2, 4);
                 ctx.fillRect(this.x + 29, this.y - 16, 2, 4);
 
+                // MAT VANG LONG LANH
                 ctx.fillStyle = '#facc15';
                 ctx.fillRect(this.x + 25, this.y - 8, 6, 6);
 
+                // Con ngươi mau den
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(this.x + 28, this.y - 8, 2, 6);
 
+                // Mui hong va rau meo
                 ctx.fillStyle = '#fda4af';
                 ctx.fillRect(this.x + 31, this.y - 3, 2, 2);
 
@@ -246,6 +258,7 @@ game_html = """
                 ctx.lineTo(this.x + 39, this.y + 1);
                 ctx.stroke();
 
+                // Duoi meo uon cong
                 ctx.strokeStyle = '#020617';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
@@ -255,6 +268,7 @@ game_html = """
             }
         };
 
+        // Danh sach toa nha - Khoang cach xa hon xieu
         let buildings = [
             { x: 0, w: 220, h: 120 },
             { x: 290, w: 180, h: 140 },
@@ -363,6 +377,65 @@ game_html = """
             ctx.fillStyle = "rgb(" + skyR + ", " + skyG + ", " + skyB + ")";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // NUI PHIA SAU
             let mR = Math.floor(skyR * 0.5);
             let mG = Math.floor(skyG * 0.5);
-            let m
+            let mB = Math.floor(skyB * 0.7);
+            ctx.fillStyle = "rgb(" + mR + ", " + mG + ", " + mB + ")";
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 40);
+            ctx.lineTo(120, canvas.height - 130);
+            ctx.lineTo(260, canvas.height - 50);
+            ctx.lineTo(410, canvas.height - 150);
+            ctx.lineTo(580, canvas.height - 60);
+            ctx.lineTo(720, canvas.height - 140);
+            ctx.lineTo(720, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.fill();
+
+            // MAT TRANG
+            ctx.fillStyle = '#fef08a';
+            ctx.beginPath();
+            ctx.arc(620, 50, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            // TOA NHA 2D
+            buildings.forEach(b => {
+                const roofY = canvas.height - b.h;
+
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(b.x, roofY, b.w, b.h);
+
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(b.x, roofY, b.w, 6);
+
+                ctx.fillStyle = '#fde047';
+                for (let wx = b.x + 14; wx < b.x + b.w - 14; wx += 22) {
+                    for (let wy = roofY + 16; wy < canvas.height - 10; wy += 24) {
+                        ctx.fillRect(wx, wy, 9, 12);
+                    }
+                }
+
+                // DEN DUONG
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(b.x + b.w + 15, canvas.height - 40, 3, 40);
+                ctx.fillStyle = '#fef08a';
+                ctx.beginPath();
+                ctx.arc(b.x + b.w + 16, canvas.height - 42, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // MEO DEN
+            cat.draw();
+
+            update();
+            requestAnimationFrame(render);
+        }
+
+        render();
+    </script>
+</body>
+</html>
+"""
+
+components.html(game_html, height=440)
