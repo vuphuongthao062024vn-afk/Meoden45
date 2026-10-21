@@ -1,17 +1,17 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Meo Den Mat Vang TikTok Jump", layout="centered")
+st.set_page_config(page_title="Meo Den Mat Vang 2D Deluxe", layout="centered")
 
 st.title("Game Meo Den Mat Vang 2D")
-st.write("Song: Sophie/Sophia is my kitty | Co nui phia sau, den duong va meo nhay sieu nhay!")
+st.write("Dieu khien meo den mat vang nhay qua cac toa nha - Nhac nen TikTok, nui phia sau va den duong!")
 
 game_html = """
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Black Cat Rooftop Run</title>
+    <title>Black Cat Rooftop Run Deluxe</title>
     <style>
         body {
             background-color: #0b0f19;
@@ -106,16 +106,16 @@ game_html = """
         let speed = 4.2;
         let audioEnabled = false;
 
-        // Web Audio API - Melodic "Sophia is my kitty" TikTok Song Theme
+        // Web Audio API - TikTok Melody "Sophia is my kitty"
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
         let bgInterval = null;
 
         const melodyNotes = [
-            523.25, 587.33, 659.25, 523.25, // C5, D5, E5, C5 (So-phie/So-phi-a)
-            659.25, 659.25, 587.33, 523.25, // E5, E5, D5, C5 (is my kit-ty)
-            659.25, 698.46, 783.99, 659.25, // E5, F5, G5, E5
-            783.99, 783.99, 698.46, 659.25  // G5, G5, F5, E5
+            523.25, 587.33, 659.25, 523.25,
+            659.25, 659.25, 587.33, 523.25,
+            659.25, 698.46, 783.99, 659.25,
+            783.99, 783.99, 698.46, 659.25
         ];
         let noteIdx = 0;
 
@@ -149,101 +149,5 @@ game_html = """
             const gain = audioCtx.createGain();
             osc.type = 'triangle';
             
-            // Hieu ung am thanh tieng Meow ngot ngat
             osc.frequency.setValueAtTime(450, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(750, audioCtx.currentTime + 0.12);
-            osc.frequency.linearRampToValueAtTime(350, audioCtx.currentTime + 0.28);
-
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.28);
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.28);
-        }
-
-        function startBgMusic() {
-            if (!audioCtx) return;
-            stopBgMusic();
-            bgInterval = setInterval(() => {
-                if (!audioEnabled) return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(melodyNotes[noteIdx], audioCtx.currentTime);
-                
-                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.22);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.22);
-
-                noteIdx = (noteIdx + 1) % melodyNotes.length;
-            }, 250);
-        }
-
-        function stopBgMusic() {
-            if (bgInterval) {
-                clearInterval(bgInterval);
-                bgInterval = null;
-            }
-        }
-
-        // Mèo Đen Mắt Vàng - Thiết kế đẹp hơn
-        const cat = {
-            x: 90,
-            y: 140,
-            w: 32,
-            h: 22,
-            vy: 0,
-            gravity: 0.68,
-            jumpPower: -12.0,
-            isGrounded: false,
-
-            draw() {
-                // Bong meo
-                ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.beginPath();
-                ctx.ellipse(this.x + 16, this.y + this.h + 2, 14, 4, 0, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Than meo den hinh khoi
-                ctx.fillStyle = '#020617';
-                ctx.fillRect(this.x, this.y, this.w, this.h);
-
-                // Dau meo den
-                ctx.fillRect(this.x + 18, this.y - 12, 16, 16);
-
-                // Tai meo sac nhon co vien hong
-                ctx.fillStyle = '#020617';
-                ctx.beginPath();
-                ctx.moveTo(this.x + 18, this.y - 12);
-                ctx.lineTo(this.x + 21, this.y - 20);
-                ctx.lineTo(this.x + 25, this.y - 12);
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.moveTo(this.x + 27, this.y - 12);
-                ctx.lineTo(this.x + 30, this.y - 20);
-                ctx.lineTo(this.x + 34, this.y - 12);
-                ctx.fill();
-
-                // Trong tai
-                ctx.fillStyle = '#f43f5e';
-                ctx.fillRect(this.x + 21, this.y - 16, 2, 4);
-                ctx.fillRect(29 + this.x, this.y - 16, 2, 4);
-
-                // MAT VANG LONG LANH
-                ctx.fillStyle = '#facc15';
-                ctx.fillRect(this.x + 25, this.y - 8, 6, 6);
-
-                // Con ngươi mau den trong mat
-                ctx.fillStyle = '#000000';
-                ctx.fillRect(this.x + 28, this.y - 8, 2, 6);
-
-                // Mui hong va râu meo
-                ctx.fillStyle = '#fda4af';
-                ctx.fillRect(this.x + 3
+            osc.frequency.linearRampToValueAt
