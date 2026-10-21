@@ -4,14 +4,14 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="Meo Den Mat Vang 2D Jump", layout="centered")
 
 st.title("Game Meo Den Mat Vang 2D")
-st.write("Dieu khien meo den mat vang nhay qua cac toa nha 2D!")
+st.write("Dieu khien meo den mat vang nhay qua cac toa nha 2D - Co nhac nen va hieu ung am thanh!")
 
 game_html = """
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Black Cat 2D Jump</title>
+    <title>Black Cat 2D Jump Audio</title>
     <style>
         body {
             background-color: #0f172a;
@@ -33,7 +33,7 @@ game_html = """
         }
         canvas {
             display: block;
-            background-color: #1e293b;
+            background-color: #0b1329;
         }
         #ui-panel {
             margin-top: 6px;
@@ -50,26 +50,33 @@ game_html = """
         #control-panel {
             margin-top: 8px;
             display: flex;
+            gap: 10px;
             justify-content: center;
             width: 720px;
+        }
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
         }
         .jump-btn {
             background-color: #f59e0b;
             color: #0f172a;
-            border: none;
-            border-radius: 8px;
-            padding: 14px 40px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
+            flex-grow: 2;
             box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
-            user-select: none;
-            width: 100%;
-            max-width: 320px;
         }
         .jump-btn:active {
             background-color: #d97706;
             transform: scale(0.96);
+        }
+        .sound-btn {
+            background-color: #38bdf8;
+            color: #0f172a;
+            flex-grow: 1;
         }
     </style>
 </head>
@@ -85,7 +92,8 @@ game_html = """
     </div>
 
     <div id="control-panel">
-        <button class="jump-btn" onclick="triggerJump()">NHẢY (JUMP)</button>
+        <button class="btn sound-btn" id="audio-toggle" onclick="toggleAudio()">AM THANH: OFF</button>
+        <button class="btn jump-btn" onclick="triggerJump()">NHẢY (JUMP)</button>
     </div>
 
     <script>
@@ -96,12 +104,78 @@ game_html = """
         let highScore = 0;
         let isGameOver = false;
         let speed = 4;
+        let audioEnabled = false;
 
-        // Meo den 2D
+        // Sound System dung Web Audio API
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        let bgOsc = null;
+        let bgGain = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioCtx();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleAudio() {
+            initAudio();
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('audio-toggle');
+            if (audioEnabled) {
+                btn.innerText = "AM THANH: ON";
+                btn.style.backgroundColor = "#22c55e";
+                startBgMusic();
+            } else {
+                btn.innerText = "AM THANH: OFF";
+                btn.style.backgroundColor = "#38bdf8";
+                stopBgMusic();
+            }
+        }
+
+        function playJumpSound() {
+            if (!audioEnabled || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15);
+        }
+
+        function startBgMusic() {
+            if (!audioCtx) return;
+            stopBgMusic();
+            bgOsc = audioCtx.createOscillator();
+            bgGain = audioCtx.createGain();
+            bgOsc.type = 'triangle';
+            bgOsc.frequency.setValueAtTime(110, audioCtx.currentTime);
+            bgGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            bgOsc.connect(bgGain);
+            bgGain.connect(audioCtx.destination);
+            bgOsc.start();
+        }
+
+        function stopBgMusic() {
+            if (bgOsc) {
+                bgOsc.stop();
+                bgOsc = null;
+            }
+        }
+
+        // Chú Mèo Đen Mắt Vàng
         const cat = {
             x: 80,
             y: 150,
-            w: 24,
+            w: 26,
             h: 18,
             vy: 0,
             gravity: 0.65,
@@ -110,36 +184,40 @@ game_html = """
 
             draw() {
                 // Than meo den
-                ctx.fillStyle = '#090d16';
+                ctx.fillStyle = '#050811';
                 ctx.fillRect(this.x, this.y, this.w, this.h);
 
                 // Dau meo den
-                ctx.fillRect(this.x + 12, this.y - 8, 12, 12);
+                ctx.fillRect(this.x + 14, this.y - 8, 12, 12);
 
-                // Tai meo den
+                // Tai meo den (2 hinh tam giac)
                 ctx.beginPath();
-                ctx.moveTo(this.x + 13, this.y - 8);
-                ctx.lineTo(this.x + 16, this.y - 14);
-                ctx.lineTo(this.x + 18, this.y - 8);
-                ctx.fillStyle = '#090d16';
+                ctx.moveTo(this.x + 14, this.y - 8);
+                ctx.lineTo(this.x + 17, this.y - 14);
+                ctx.lineTo(this.x + 19, this.y - 8);
+                ctx.fillStyle = '#050811';
                 ctx.fill();
 
                 ctx.beginPath();
-                ctx.moveTo(this.x + 19, this.y - 8);
-                ctx.lineTo(this.x + 22, this.y - 14);
-                ctx.lineTo(this.x + 24, this.y - 8);
+                ctx.moveTo(this.x + 20, this.y - 8);
+                ctx.lineTo(this.x + 23, this.y - 14);
+                ctx.lineTo(this.x + 25, this.y - 8);
                 ctx.fill();
 
-                // MAT VANG CHOI SANG
+                // MAT VANG CHOI SANG (Yellow Eyes)
                 ctx.fillStyle = '#facc15';
-                ctx.fillRect(this.x + 19, this.y - 5, 3, 3);
+                ctx.fillRect(this.x + 20, this.y - 5, 4, 4);
 
-                // Duoi meo
-                ctx.strokeStyle = '#090d16';
-                ctx.lineWidth = 2;
+                // Con ngươi mau den trong mat
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(this.x + 21, this.y - 5, 2, 4);
+
+                // Duoi meo den cong len
+                ctx.strokeStyle = '#050811';
+                ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.moveTo(this.x, this.y + 10);
-                ctx.lineTo(this.x - 6, this.y - 2);
+                ctx.quadraticCurveTo(this.x - 8, this.y + 2, this.x - 6, this.y - 6);
                 ctx.stroke();
             }
         };
@@ -153,6 +231,7 @@ game_html = """
         ];
 
         function triggerJump() {
+            initAudio();
             if (isGameOver) {
                 resetGame();
                 return;
@@ -160,6 +239,7 @@ game_html = """
             if (cat.isGrounded) {
                 cat.vy = cat.jumpPower;
                 cat.isGrounded = false;
+                playJumpSound();
             }
         }
 
@@ -191,10 +271,8 @@ game_html = """
             cat.vy += cat.gravity;
             cat.y += cat.vy;
 
-            // Di chuyen toa nha sang trai
             buildings.forEach(b => b.x -= speed);
 
-            // Sinh toa nha moi 2D
             if (buildings[0].x + buildings[0].w < 0) {
                 buildings.shift();
                 const last = buildings[buildings.length - 1];
@@ -215,7 +293,6 @@ game_html = """
                 if (score % 40 === 0) speed += 0.3;
             }
 
-            // Kiem tra va cham dap noc 2D
             cat.isGrounded = false;
             buildings.forEach(b => {
                 const roofY = canvas.height - b.h;
@@ -232,7 +309,6 @@ game_html = """
                 }
             });
 
-            // Thua cuoc khi rơi xuong
             if (cat.y > canvas.height) {
                 isGameOver = true;
                 document.getElementById('status-txt').innerText = "THUA - NHAN NHAY DE CHOI LAI";
@@ -243,10 +319,22 @@ game_html = """
         function render() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Ve mat trang 2D
+            // Ve ngoi sao lung linh tren bau troi
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(100, 30, 2, 2);
+            ctx.fillRect(250, 50, 2, 2);
+            ctx.fillRect(420, 20, 2, 2);
+            ctx.fillRect(580, 40, 2, 2);
+
+            // Ve MAT TRANG VANG DONG 2D (Moon)
             ctx.fillStyle = '#fef08a';
             ctx.beginPath();
-            ctx.arc(650, 45, 16, 0, Math.PI * 2);
+            ctx.arc(640, 45, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#fde047';
+            ctx.beginPath();
+            ctx.arc(636, 42, 14, 0, Math.PI * 2);
             ctx.fill();
 
             // Ve cac toa nha 2D phang
@@ -261,7 +349,7 @@ game_html = """
                 ctx.fillStyle = '#475569';
                 ctx.fillRect(b.x, roofY, b.w, 4);
 
-                // Cua so 2D
+                // Cua so 2D sang den
                 ctx.fillStyle = '#fbbf24';
                 for (let wx = b.x + 12; wx < b.x + b.w - 12; wx += 20) {
                     for (let wy = roofY + 15; wy < canvas.height - 8; wy += 22) {
@@ -284,3 +372,4 @@ game_html = """
 """
 
 components.html(game_html, height=440)
+
