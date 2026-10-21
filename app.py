@@ -1,105 +1,368 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Meo Den Jump", layout="centered")
+st.set_page_config(page_title="Meo Den Mat Vang 2D Deluxe", layout="centered")
 
-st.title("Game Meo Den Mat Vang")
+st.title("Game Meo Den Mat Vang 2D")
+st.write("Song: Sophia is my kitty | Co nui phia sau, den duong, tieng Meow va nhay 1 cham!")
 
-game_html = '''
+game_html = """
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Cat Jump</title>
+    <title>Black Cat Rooftop Run Deluxe</title>
     <style>
-        body { background: #0f172a; color: white; text-align: center; font-family: Arial; margin: 0; padding: 5px; }
-        canvas { background: #1e293b; border: 2px solid #38bdf8; border-radius: 8px; display: block; margin: 0 auto; }
-        #ui { margin-top: 6px; font-size: 14px; font-weight: bold; }
-        .btn { margin-top: 8px; background: #f59e0b; color: #0f172a; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        body {
+            background-color: #0b0f19;
+            color: #f8fafc;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 5px;
+        }
+        #game-container {
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+            border: 2px solid #38bdf8;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+        #ui-panel {
+            margin-top: 6px;
+            background: #0f172a;
+            padding: 8px 12px;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            font-size: 13px;
+            width: 720px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+        #control-panel {
+            margin-top: 8px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            width: 720px;
+        }
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .jump-btn {
+            background-color: #f59e0b;
+            color: #0f172a;
+            flex-grow: 2;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+        .jump-btn:active {
+            background-color: #d97706;
+            transform: scale(0.96);
+        }
+        .sound-btn {
+            background-color: #38bdf8;
+            color: #0f172a;
+            flex-grow: 1;
+        }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" height="280" width="700"></canvas>
-    <div id="ui">DIEM: <span id="score">0</span></div>
-    <button class="btn" onclick="jumpCat()">NHAY</button>
+    <div id="game-container">
+        <canvas id="gameCanvas" height="320" width="720"></canvas>
+    </div>
+    
+    <div id="ui-panel">
+        <div>DIEM: <span id="score-txt">0</span></div>
+        <div>TRANG THAI: <span id="status-txt" style="color: #38bdf8;">SAN SANG</span></div>
+        <div>KY LUC: <span id="high-txt">0</span></div>
+    </div>
+
+    <div id="control-panel">
+        <button class="btn sound-btn" id="audio-toggle" onclick="toggleAudio()">NHAC (SOPHIA KITTY): OFF</button>
+        <button class="btn jump-btn" id="jump-trigger">NHẢY (1 CHAM)</button>
+    </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
         let score = 0;
-        let isOver = false;
-        let speed = 4;
+        let highScore = 0;
+        let isGameOver = false;
+        let speed = 4.2;
+        let audioEnabled = false;
 
-        const cat = { x: 80, y: 140, w: 28, h: 20, vy: 0, gravity: 0.6, jump: -10, grounded: false };
-        let buildings = [{ x: 0, w: 200, h: 100 }, { x: 250, w: 180, h: 130 }, { x: 470, w: 220, h: 110 }, { x: 730, w: 200, h: 120 }];
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        let bgInterval = null;
 
-        function jumpCat() {
-            if (isOver) { resetGame(); return; }
-            if (cat.grounded) { cat.vy = cat.jump; cat.grounded = false; }
+        const melodyNotes = [
+            523.25, 587.33, 659.25, 523.25,
+            659.25, 659.25, 587.33, 523.25,
+            659.25, 698.46, 783.99, 659.25,
+            783.99, 783.99, 698.46, 659.25
+        ];
+        let noteIdx = 0;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioCtx();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
         }
 
-        window.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'ArrowUp') jumpCat(); });
+        function toggleAudio() {
+            initAudio();
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('audio-toggle');
+            if (audioEnabled) {
+                btn.innerText = "NHAC (SOPHIA KITTY): ON";
+                btn.style.backgroundColor = "#22c55e";
+                startBgMusic();
+            } else {
+                btn.innerText = "NHAC (SOPHIA KITTY): OFF";
+                btn.style.backgroundColor = "#38bdf8";
+                stopBgMusic();
+            }
+        }
+
+        function playMeowSound() {
+            if (!audioEnabled || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            
+            osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(750, audioCtx.currentTime + 0.12);
+            osc.frequency.linearRampToValueAtTime(350, audioCtx.currentTime + 0.28);
+
+            gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.28);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.28);
+        }
+
+        function startBgMusic() {
+            if (!audioCtx) return;
+            stopBgMusic();
+            bgInterval = setInterval(() => {
+                if (!audioEnabled) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(melodyNotes[noteIdx], audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.22);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.22);
+
+                noteIdx = (noteIdx + 1) % melodyNotes.length;
+            }, 250);
+        }
+
+        function stopBgMusic() {
+            if (bgInterval) {
+                clearInterval(bgInterval);
+                bgInterval = null;
+            }
+        }
+
+        const cat = {
+            x: 90,
+            y: 140,
+            w: 32,
+            h: 22,
+            vy: 0,
+            gravity: 0.68,
+            jumpPower: -12.0,
+            isGrounded: false,
+
+            draw() {
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.beginPath();
+                ctx.ellipse(this.x + 16, this.y + this.h + 2, 14, 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#020617';
+                ctx.fillRect(this.x, this.y, this.w, this.h);
+
+                ctx.fillRect(this.x + 18, this.y - 12, 16, 16);
+
+                ctx.fillStyle = '#020617';
+                ctx.beginPath();
+                ctx.moveTo(this.x + 18, this.y - 12);
+                ctx.lineTo(this.x + 21, this.y - 20);
+                ctx.lineTo(this.x + 25, this.y - 12);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(this.x + 27, this.y - 12);
+                ctx.lineTo(this.x + 30, this.y - 20);
+                ctx.lineTo(this.x + 34, this.y - 12);
+                ctx.fill();
+
+                ctx.fillStyle = '#f43f5e';
+                ctx.fillRect(this.x + 21, this.y - 16, 2, 4);
+                ctx.fillRect(this.x + 29, this.y - 16, 2, 4);
+
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(this.x + 25, this.y - 8, 6, 6);
+
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(this.x + 28, this.y - 8, 2, 6);
+
+                ctx.fillStyle = '#fda4af';
+                ctx.fillRect(this.x + 31, this.y - 3, 2, 2);
+
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(this.x + 33, this.y - 2);
+                ctx.lineTo(this.x + 39, this.y - 4);
+                ctx.moveTo(this.x + 33, this.y - 1);
+                ctx.lineTo(this.x + 39, this.y + 1);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#020617';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + 12);
+                ctx.quadraticCurveTo(this.x - 12, this.y + 2, this.x - 8, this.y - 8);
+                ctx.stroke();
+            }
+        };
+
+        let buildings = [
+            { x: 0, w: 220, h: 120 },
+            { x: 290, w: 180, h: 140 },
+            { x: 540, w: 200, h: 110 },
+            { x: 810, w: 220, h: 130 }
+        ];
+
+        function triggerJump(e) {
+            if (e) e.preventDefault();
+            initAudio();
+            if (isGameOver) {
+                resetGame();
+                return;
+            }
+            if (cat.isGrounded) {
+                cat.vy = cat.jumpPower;
+                cat.isGrounded = false;
+                playMeowSound();
+            }
+        }
+
+        const jumpBtn = document.getElementById('jump-trigger');
+        jumpBtn.addEventListener('touchstart', triggerJump, {passive: false});
+        jumpBtn.addEventListener('click', triggerJump);
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'w') {
+                triggerJump();
+            }
+        });
 
         function resetGame() {
-            score = 0; speed = 4; isOver = false; cat.y = 100; cat.vy = 0;
-            buildings = [{ x: 0, w: 200, h: 100 }, { x: 250, w: 180, h: 130 }, { x: 470, w: 220, h: 110 }, { x: 730, w: 200, h: 120 }];
+            score = 0;
+            speed = 4.2;
+            isGameOver = false;
+            cat.y = 100;
+            cat.vy = 0;
+            buildings = [
+                { x: 0, w: 220, h: 120 },
+                { x: 290, w: 180, h: 140 },
+                { x: 540, w: 200, h: 110 },
+                { x: 810, w: 220, h: 130 }
+            ];
+            document.getElementById('status-txt').innerText = "DANG CHAY";
+            document.getElementById('status-txt').style.color = "#38bdf8";
         }
 
         function update() {
-            if (isOver) return;
-            cat.vy += cat.gravity; cat.y += cat.vy;
+            if (isGameOver) return;
+
+            cat.vy += cat.gravity;
+            cat.y += cat.vy;
+
             buildings.forEach(b => b.x -= speed);
 
             if (buildings[0].x + buildings[0].w < 0) {
                 buildings.shift();
-                let last = buildings[buildings.length - 1];
-                buildings.push({ x: last.x + last.w + 60 + Math.random() * 50, w: 160 + Math.random() * 80, h: 80 + Math.random() * 60 });
+                const last = buildings[buildings.length - 1];
+                const gap = 70 + Math.random() * 60;
+                const newW = 160 + Math.random() * 100;
+                const newH = 90 + Math.random() * 60;
+                buildings.push({
+                    x: last.x + last.w + gap,
+                    w: newW,
+                    h: newH
+                });
+
                 score += 10;
-                document.getElementById('score').innerText = score;
-                speed += 0.2;
+                if (score > highScore) highScore = score;
+                document.getElementById('score-txt').innerText = score;
+                document.getElementById('high-txt').innerText = highScore;
+
+                speed += 0.35;
             }
 
-            cat.grounded = false;
+            cat.isGrounded = false;
             buildings.forEach(b => {
-                let roofY = canvas.height - b.h;
-                if (cat.x + cat.w > b.x && cat.x < b.x + b.w && cat.y + cat.h >= roofY && cat.y + cat.h <= roofY + 10 && cat.vy >= 0) {
-                    cat.y = roofY - cat.h; cat.vy = 0; cat.grounded = true;
+                const roofY = canvas.height - b.h;
+                if (
+                    cat.x + cat.w > b.x &&
+                    cat.x < b.x + b.w &&
+                    cat.y + cat.h >= roofY &&
+                    cat.y + cat.h <= roofY + 12 &&
+                    cat.vy >= 0
+                ) {
+                    cat.y = roofY - cat.h;
+                    cat.vy = 0;
+                    cat.isGrounded = true;
                 }
             });
 
-            if (cat.y > canvas.height) isOver = true;
+            if (cat.y > canvas.height) {
+                isGameOver = true;
+                document.getElementById('status-txt').innerText = "THUA - BAM NHAY DE CHOI LAI";
+                document.getElementById('status-txt').style.color = "#ef4444";
+            }
         }
 
         function render() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let brightnessFactor = Math.min(score * 0.015, 0.7);
             
-            // Mat trang
-            ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(620, 40, 16, 0, Math.PI * 2); ctx.fill();
+            let skyR = Math.floor(11 + brightnessFactor * 120);
+            let skyG = Math.floor(15 + brightnessFactor * 140);
+            let skyB = Math.floor(25 + brightnessFactor * 160);
+            
+            ctx.fillStyle = "rgb(" + skyR + ", " + skyG + ", " + skyB + ")";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Toa nha
-            buildings.forEach(b => {
-                let roofY = canvas.height - b.h;
-                ctx.fillStyle = '#0f172a'; ctx.fillRect(b.x, roofY, b.w, b.h);
-                ctx.fillStyle = '#fde047';
-                for (let wx = b.x + 12; wx < b.x + b.w - 12; wx += 20) {
-                    for (let wy = roofY + 12; wy < canvas.height - 8; wy += 20) {
-                        ctx.fillRect(wx, wy, 8, 10);
-                    }
-                }
-            });
-
-            // Meo den mat vang
-            ctx.fillStyle = '#020617'; ctx.fillRect(cat.x, cat.y, cat.w, cat.h);
-            ctx.fillStyle = '#facc15'; ctx.fillRect(cat.x + 20, cat.y - 5, 4, 4);
-
-            update();
-            requestAnimationFrame(render);
-        }
-        render();
-    </script>
-</body>
-</html>
-'''
-
-components.html(game_html, height=400)
+            let mR = Math.floor(skyR * 0.5);
+            let mG = Math.floor(skyG * 0.5);
+            let m
