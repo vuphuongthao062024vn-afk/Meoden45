@@ -1,17 +1,17 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Meo Den Mat Vang 2D Jump", layout="centered")
+st.set_page_config(page_title="Meo Den Mat Vang 2D Deluxe", layout="centered")
 
 st.title("Game Meo Den Mat Vang 2D")
-st.write("Dieu khien meo den mat vang nhay qua cac toa nha 2D - Co nhac nen va hieu ung am thanh!")
+st.write("Meo den nhay qua cac toa nha - Co tieng Meow, nhac nen to hon va hieu ung sang dan theo diem so!")
 
 game_html = """
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Black Cat 2D Jump Audio</title>
+    <title>Black Cat Deluxe Jump</title>
     <style>
         body {
             background-color: #0f172a;
@@ -26,14 +26,13 @@ game_html = """
         }
         #game-container {
             position: relative;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.8);
             border: 2px solid #38bdf8;
             border-radius: 8px;
             overflow: hidden;
         }
         canvas {
             display: block;
-            background-color: #0b1329;
         }
         #ui-panel {
             margin-top: 6px;
@@ -106,7 +105,7 @@ game_html = """
         let speed = 4;
         let audioEnabled = false;
 
-        // Sound System dung Web Audio API
+        // Audio API cho nhac nen to hon va tieng Meow
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
         let bgOsc = null;
@@ -136,19 +135,23 @@ game_html = """
             }
         }
 
-        function playJumpSound() {
+        // Tieng Meow vui nhộn khi nhay
+        function playMeowSound() {
             if (!audioEnabled || !audioCtx) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.15);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.1);
+            osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.3);
+            
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.15);
+            osc.stop(audioCtx.currentTime + 0.3);
         }
 
         function startBgMusic() {
@@ -157,8 +160,11 @@ game_html = """
             bgOsc = audioCtx.createOscillator();
             bgGain = audioCtx.createGain();
             bgOsc.type = 'triangle';
-            bgOsc.frequency.setValueAtTime(110, audioCtx.currentTime);
-            bgGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            bgOsc.frequency.setValueAtTime(130, audioCtx.currentTime);
+            
+            // Tang am luong nhac nen to hon
+            bgGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            
             bgOsc.connect(bgGain);
             bgGain.connect(audioCtx.destination);
             bgOsc.start();
@@ -171,58 +177,68 @@ game_html = """
             }
         }
 
-        // Chú Mèo Đen Mắt Vàng
+        // Meo den mat vang to ro, sac net
         const cat = {
-            x: 80,
-            y: 150,
-            w: 26,
-            h: 18,
+            x: 90,
+            y: 140,
+            w: 30,
+            h: 22,
             vy: 0,
             gravity: 0.65,
             jumpPower: -11.5,
             isGrounded: false,
 
             draw() {
+                // Bong meo
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.beginPath();
+                ctx.ellipse(this.x + 15, this.y + this.h + 2, 12, 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+
                 // Than meo den
-                ctx.fillStyle = '#050811';
+                ctx.fillStyle = '#020617';
                 ctx.fillRect(this.x, this.y, this.w, this.h);
 
                 // Dau meo den
-                ctx.fillRect(this.x + 14, this.y - 8, 12, 12);
+                ctx.fillRect(this.x + 16, this.y - 10, 14, 14);
 
-                // Tai meo den (2 hinh tam giac)
+                // Tai meo sac nhon
                 ctx.beginPath();
-                ctx.moveTo(this.x + 14, this.y - 8);
-                ctx.lineTo(this.x + 17, this.y - 14);
-                ctx.lineTo(this.x + 19, this.y - 8);
-                ctx.fillStyle = '#050811';
+                ctx.moveTo(this.x + 16, this.y - 10);
+                ctx.lineTo(this.x + 19, this.y - 18);
+                ctx.lineTo(this.x + 22, this.y - 10);
+                ctx.fillStyle = '#020617';
                 ctx.fill();
 
                 ctx.beginPath();
-                ctx.moveTo(this.x + 20, this.y - 8);
-                ctx.lineTo(this.x + 23, this.y - 14);
-                ctx.lineTo(this.x + 25, this.y - 8);
+                ctx.moveTo(this.x + 23, this.y - 10);
+                ctx.lineTo(this.x + 26, this.y - 18);
+                ctx.lineTo(this.x + 29, this.y - 10);
                 ctx.fill();
 
-                // MAT VANG CHOI SANG (Yellow Eyes)
+                // Mat vang choi sang dac trung
                 ctx.fillStyle = '#facc15';
-                ctx.fillRect(this.x + 20, this.y - 5, 4, 4);
+                ctx.fillRect(this.x + 23, this.y - 6, 5, 5);
 
-                // Con ngươi mau den trong mat
+                // Con ngươi den trong mat
                 ctx.fillStyle = '#000000';
-                ctx.fillRect(this.x + 21, this.y - 5, 2, 4);
+                ctx.fillRect(this.x + 25, this.y - 6, 2, 5);
 
-                // Duoi meo den cong len
-                ctx.strokeStyle = '#050811';
+                // Mui hong nho
+                ctx.fillStyle = '#fda4af';
+                ctx.fillRect(this.x + 27, this.y - 2, 2, 2);
+
+                // Duoi meo den cong vuot cong
+                ctx.strokeStyle = '#020617';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.moveTo(this.x, this.y + 10);
-                ctx.quadraticCurveTo(this.x - 8, this.y + 2, this.x - 6, this.y - 6);
+                ctx.moveTo(this.x, this.y + 12);
+                ctx.quadraticCurveTo(this.x - 10, this.y + 2, this.x - 6, this.y - 6);
                 ctx.stroke();
             }
         };
 
-        // Danh sach cac toa nha 2D
+        // Danh sach cac toa nha
         let buildings = [
             { x: 0, w: 220, h: 120 },
             { x: 260, w: 180, h: 140 },
@@ -239,7 +255,7 @@ game_html = """
             if (cat.isGrounded) {
                 cat.vy = cat.jumpPower;
                 cat.isGrounded = false;
-                playJumpSound();
+                playMeowSound();
             }
         }
 
@@ -290,7 +306,8 @@ game_html = """
                 document.getElementById('score-txt').innerText = score;
                 document.getElementById('high-txt').innerText = highScore;
 
-                if (score % 40 === 0) speed += 0.3;
+                // Tang toc do moi khi vuot qua toa nha
+                speed += 0.35;
             }
 
             cat.isGrounded = false;
@@ -300,7 +317,7 @@ game_html = """
                     cat.x + cat.w > b.x &&
                     cat.x < b.x + b.w &&
                     cat.y + cat.h >= roofY &&
-                    cat.y + cat.h <= roofY + 10 &&
+                    cat.y + cat.h <= roofY + 12 &&
                     cat.vy >= 0
                 ) {
                     cat.y = roofY - cat.h;
@@ -317,48 +334,53 @@ game_html = """
         }
 
         function render() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Hieu ung troi sang dan theo diem so (Mỗi 10 điểm trời sáng lên một chút)
+            let brightnessFactor = Math.min(score * 0.015, 0.7);
+            
+            let skyR = Math.floor(15 + brightnessFactor * 120);
+            let skyG = Math.floor(23 + brightnessFactor * 140);
+            let skyB = Math.floor(42 + brightnessFactor * 160);
+            
+            ctx.fillStyle = `rgb(${skyR}, ${skyG}, ${skyB})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Ve ngoi sao lung linh tren bau troi
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(100, 30, 2, 2);
-            ctx.fillRect(250, 50, 2, 2);
-            ctx.fillRect(420, 20, 2, 2);
-            ctx.fillRect(580, 40, 2, 2);
+            // Ve sao lung linh ban dem (mo dan khi troi sang)
+            if (brightnessFactor < 0.4) {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(110, 40, 2, 2);
+                ctx.fillRect(270, 60, 2, 2);
+                ctx.fillRect(450, 30, 2, 2);
+                ctx.fillRect(600, 50, 2, 2);
+            }
 
-            // Ve MAT TRANG VANG DONG 2D (Moon)
+            // Ve Mat Trang sang ruc ro
             ctx.fillStyle = '#fef08a';
             ctx.beginPath();
-            ctx.arc(640, 45, 18, 0, Math.PI * 2);
+            ctx.arc(630, 50, 20, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = '#fde047';
-            ctx.beginPath();
-            ctx.arc(636, 42, 14, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Ve cac toa nha 2D phang
+            // Ve cac toa nha ro net va chi tiet hon
             buildings.forEach(b => {
                 const roofY = canvas.height - b.h;
 
-                // Khoi toa nha 2D
-                ctx.fillStyle = '#0f172a';
+                // Than toa nha
+                ctx.fillStyle = '#090d16';
                 ctx.fillRect(b.x, roofY, b.w, b.h);
 
-                // Vien noc
-                ctx.fillStyle = '#475569';
-                ctx.fillRect(b.x, roofY, b.w, 4);
+                // Vien noc sang ro
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(b.x, roofY, b.w, 6);
 
-                // Cua so 2D sang den
-                ctx.fillStyle = '#fbbf24';
-                for (let wx = b.x + 12; wx < b.x + b.w - 12; wx += 20) {
-                    for (let wy = roofY + 15; wy < canvas.height - 8; wy += 22) {
-                        ctx.fillRect(wx, wy, 8, 10);
+                // Cua so vang sang ruc ro
+                ctx.fillStyle = '#fde047';
+                for (let wx = b.x + 14; wx < b.x + b.w - 14; wx += 22) {
+                    for (let wy = roofY + 16; wy < canvas.height - 10; wy += 24) {
+                        ctx.fillRect(wx, wy, 9, 12);
                     }
                 }
             });
 
-            // Ve meo den mat vang
+            // Ve chu meo den ro net
             cat.draw();
 
             update();
@@ -372,4 +394,3 @@ game_html = """
 """
 
 components.html(game_html, height=440)
-
